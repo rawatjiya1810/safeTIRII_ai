@@ -1,0 +1,103 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile containing commercial driver details, contact info, and associated smart battery metadata.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique identifier of the user account"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Registered email address of the driver"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the commercial operator / driver"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Mobile phone number with country code"
+        },
+        "vehicleNumber": {
+          "type": "string",
+          "description": "Commercial registration number of the e-rickshaw / e-vehicle"
+        },
+        "batteryBrand": {
+          "type": "string",
+          "description": "Manufacturer brand name of the smart Li-Ion battery"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the profile was registered"
+        }
+      },
+      "required": ["uid", "email", "name", "createdAt"]
+    },
+    "Complaint": {
+      "title": "Complaint",
+      "description": "Cyber security incident complaint report registered by an e-vehicle operator.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique generated complaint reference identifier"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the authenticated user who submitted the complaint, if logged in"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the person registering the complaint"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number for security follow-up"
+        },
+        "vehicleNumber": {
+          "type": "string",
+          "description": "E-rickshaw vehicle plate number associated with the incident"
+        },
+        "location": {
+          "type": "string",
+          "description": "Geographical location where the cyber incident or anomaly took place"
+        },
+        "description": {
+          "type": "string",
+          "description": "Elaborate textual description of the cyber threat or battery anomaly observed"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["bluetooth_attack", "battery_tampering", "cyber_fraud", "suspicious_activity", "battery_malfunction"],
+          "description": "Categorization of the reported security threat"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Submitted", "Under Review", "Resolved"],
+          "description": "Current resolution stage of the registered incident"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the incident complaint was logged"
+        }
+      },
+      "required": ["id", "name", "phone", "vehicleNumber", "location", "description", "category", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Collection of commercial operator user profiles indexed by their unique ID."
+    },
+    "/complaints/{complaintId}": {
+      "schema": "Complaint",
+      "description": "Global collection of cyber incidents and e-rickshaw battery tampering complaints."
+    }
+  }
+}

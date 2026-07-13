@@ -1,0 +1,6 @@
+{
+  "name": "safeTIRRI AI",
+  "description": "AI-powered Cybersecurity & Citizen Assistance Platform for Indian E-Rickshaw Drivers to prevent remote Bluetooth-based vehicle attacks.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

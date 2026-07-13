@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming()) && 
+                    incoming().uid == existing().uid &&
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'vehicleNumber', 'batteryBrand']);
+      allow delete: if false;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'name', 'createdAt']) &&
+             data.keys().size() >= 4 &&
+             data.keys().size() <= 7 &&
+             data.uid is string && data.uid.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    // Complaints collection rules
+    match /complaints/{complaintId} {
+      allow get: if isSignedIn() && (isOwner(existing().userId) || existing().userId == null);
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId == null);
+      allow create: if isSignedIn() && isValidComplaint(incoming()) && (incoming().userId == request.auth.uid || incoming().userId == null);
+      allow update: if isSignedIn() && isOwner(existing().userId) && isValidComplaint(incoming()) &&
+                    incoming().id == existing().id &&
+                    incoming().userId == existing().userId &&
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['status', 'description', 'location']);
+      allow delete: if false;
+    }
+
+    function isValidComplaint(data) {
+      return data.keys().hasAll(['id', 'name', 'phone', 'vehicleNumber', 'location', 'description', 'category', 'status', 'createdAt']) &&
+             data.keys().size() >= 9 &&
+             data.keys().size() <= 10 &&
+             data.id is string && data.id.size() <= 128 &&
+             (!data.keys().hasAny(['userId']) || (data.userId is string && data.userId.size() <= 128)) &&
+             data.name is string && data.name.size() <= 128 &&
+             data.phone is string && data.phone.size() <= 32 &&
+             data.vehicleNumber is string && data.vehicleNumber.size() <= 32 &&
+             data.location is string && data.location.size() <= 256 &&
+             data.description is string && data.description.size() <= 2048 &&
+             data.category is string && data.category in ['bluetooth_attack', 'battery_tampering', 'cyber_fraud', 'suspicious_activity', 'battery_malfunction'] &&
+             data.status is string && data.status in ['Submitted', 'Under Review', 'Resolved'] &&
+             data.createdAt is string && data.createdAt.size() <= 64;
+    }
+  }
+}
